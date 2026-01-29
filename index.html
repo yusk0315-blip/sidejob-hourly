@@ -1,0 +1,365 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>副業 時給計算機</title>
+  <style>
+    :root{
+      --bg:#f4f6f8; --card:#ffffff; --text:#111827; --muted:#6b7280;
+      --line:#e5e7eb; --accent:#111827; --ok:#16a34a; --ng:#dc2626;
+      --shadow:0 10px 25px rgba(0,0,0,.08);
+      --radius:18px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,"Hiragino Kaku Gothic ProN","Noto Sans JP","Yu Gothic",sans-serif;
+      background:var(--bg); color:var(--text);
+      padding:16px 12px 80px;
+    }
+    .wrap{max-width:720px;margin:0 auto}
+    header{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin:8px 0 14px}
+    h1{font-size:20px;margin:0}
+    .sub{font-size:12px;color:var(--muted);margin:6px 0 0}
+    .grid{display:grid;grid-template-columns:1fr;gap:12px}
+    @media (min-width:720px){ .grid{grid-template-columns:1fr 1fr;} }
+    .card{
+      background:var(--card); border:1px solid var(--line);
+      border-radius:var(--radius); box-shadow:var(--shadow);
+      padding:14px;
+    }
+    .card h2{font-size:14px;margin:0 0 10px}
+    label{display:block;font-size:12px;color:var(--muted);margin:10px 0 6px}
+    .row{display:flex;gap:10px;align-items:center}
+    input{
+      width:100%; padding:12px 12px; border-radius:12px; border:1px solid var(--line);
+      font-size:16px; outline:none; background:#fff;
+    }
+    input:focus{border-color:#cbd5e1}
+    .unit{min-width:56px;text-align:right;color:var(--muted);font-size:13px}
+    .btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+    button{
+      border:0; border-radius:14px; padding:12px 14px; font-size:15px; font-weight:700;
+      cursor:pointer;
+    }
+    .primary{background:var(--accent);color:#fff;flex:1}
+    .ghost{background:#fff;border:1px solid var(--line);color:var(--text)}
+    .hint{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.5}
+    .result{
+      display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px;
+    }
+    .kpi{
+      border:1px solid var(--line); border-radius:14px; padding:12px; background:#fff;
+    }
+    .kpi .t{font-size:12px;color:var(--muted)}
+    .kpi .v{font-size:18px;font-weight:800;margin-top:4px}
+    .kpi .s{font-size:12px;color:var(--muted);margin-top:4px}
+    .badge{
+      display:inline-flex; align-items:center; gap:6px;
+      font-size:12px; font-weight:800; padding:6px 10px; border-radius:999px;
+      border:1px solid var(--line); background:#fff; margin-top:10px;
+    }
+    .ok{color:var(--ok); border-color:rgba(22,163,74,.25); background:rgba(22,163,74,.08)}
+    .ng{color:var(--ng); border-color:rgba(220,38,38,.25); background:rgba(220,38,38,.08)}
+    .footer-note{font-size:12px;color:var(--muted);margin-top:12px;line-height:1.6}
+    .mono{font-variant-numeric:tabular-nums}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>副業 時給計算機</h1>
+        <div class="sub">利益と作業時間から「時給」と「目標達成に必要な件数/時間」を出します。</div>
+      </div>
+      <div style="font-size:12px;color:var(--muted)">保存: 自動</div>
+    </header>
+
+    <div class="grid">
+      <section class="card">
+        <h2>入力</h2>
+
+        <label>利益（1件あたり）</label>
+        <div class="row">
+          <input id="profitPerDeal" type="number" inputmode="numeric" min="0" step="100" placeholder="例：3000" />
+          <div class="unit">円</div>
+        </div>
+
+        <label>作業時間（1件あたり）</label>
+        <div class="row">
+          <input id="minutesPerDeal" type="number" inputmode="numeric" min="1" step="1" placeholder="例：25" />
+          <div class="unit">分</div>
+        </div>
+
+        <label>目標（月の利益）</label>
+        <div class="row">
+          <input id="targetMonthly" type="number" inputmode="numeric" min="0" step="1000" placeholder="例：50000" />
+          <div class="unit">円/月</div>
+        </div>
+
+        <label>稼働日数（月）</label>
+        <div class="row">
+          <input id="workDaysPerMonth" type="number" inputmode="numeric" min="1" max="31" step="1" placeholder="例：22" />
+          <div class="unit">日</div>
+        </div>
+
+        <label>1日の作業時間上限（任意）</label>
+        <div class="row">
+          <input id="maxHoursPerDay" type="number" inputmode="decimal" min="0" step="0.5" placeholder="例：1.5" />
+          <div class="unit">時間/日</div>
+        </div>
+
+        <div class="btns">
+          <button class="primary" id="calcBtn">計算する</button>
+          <button class="ghost" id="resetBtn">リセット</button>
+        </div>
+
+        <div class="hint">
+          ※ 利益（1件あたり）は「売値 − 仕入れ − 手数料 − 送料 − 修理等」をまとめた純利益で入れると正確。<br/>
+          ※ 入力は端末に自動保存されます（このページ内のみ）。
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>結果</h2>
+        <div id="statusBadge" class="badge" style="display:none"></div>
+
+        <div class="result">
+          <div class="kpi">
+            <div class="t">あなたの時給</div>
+            <div class="v mono" id="hourly">-</div>
+            <div class="s">利益 ÷ 作業時間</div>
+          </div>
+          <div class="kpi">
+            <div class="t">目標達成に必要な件数（月）</div>
+            <div class="v mono" id="needDealsMonth">-</div>
+            <div class="s">目標 ÷ 利益/件（切り上げ）</div>
+          </div>
+          <div class="kpi">
+            <div class="t">必要な件数（1日）</div>
+            <div class="v mono" id="needDealsDay">-</div>
+            <div class="s">月必要件数 ÷ 稼働日数</div>
+          </div>
+          <div class="kpi">
+            <div class="t">必要な作業時間（1日）</div>
+            <div class="v mono" id="needTimeDay">-</div>
+            <div class="s">月必要時間 ÷ 稼働日数</div>
+          </div>
+        </div>
+
+        <div class="footer-note" id="advice">
+          入力して「計算する」を押すと、ここに改善ポイントも出ます。
+        </div>
+      </section>
+    </div>
+  </div>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+
+  const els = {
+    profitPerDeal: $("profitPerDeal"),
+    minutesPerDeal: $("minutesPerDeal"),
+    targetMonthly: $("targetMonthly"),
+    workDaysPerMonth: $("workDaysPerMonth"),
+    maxHoursPerDay: $("maxHoursPerDay"),
+    calcBtn: $("calcBtn"),
+    resetBtn: $("resetBtn"),
+    statusBadge: $("statusBadge"),
+    hourly: $("hourly"),
+    needDealsMonth: $("needDealsMonth"),
+    needDealsDay: $("needDealsDay"),
+    needTimeDay: $("needTimeDay"),
+    advice: $("advice"),
+  };
+
+  const STORAGE_KEY = "sidejob_hourly_calc_v1";
+
+  function fmtYen(n){
+    if (!isFinite(n)) return "-";
+    return new Intl.NumberFormat("ja-JP").format(Math.round(n)) + "円";
+  }
+  function fmtNum(n){
+    if (!isFinite(n)) return "-";
+    return new Intl.NumberFormat("ja-JP").format(Math.round(n));
+  }
+  function fmtHour(h){
+    if (!isFinite(h)) return "-";
+    const rounded = Math.round(h * 10) / 10;
+    return rounded.toLocaleString("ja-JP", {maximumFractionDigits:1}) + "時間";
+  }
+  function fmtMin(m){
+    if (!isFinite(m)) return "-";
+    const minutes = Math.round(m);
+    const hh = Math.floor(minutes / 60);
+    const mm = minutes % 60;
+    if (hh <= 0) return mm + "分";
+    return hh + "時間" + mm + "分";
+  }
+
+  function readInputs(){
+    const profitPerDeal = Number(els.profitPerDeal.value);
+    const minutesPerDeal = Number(els.minutesPerDeal.value);
+    const targetMonthly = Number(els.targetMonthly.value);
+    const workDaysPerMonth = Number(els.workDaysPerMonth.value);
+    const maxHoursPerDay = els.maxHoursPerDay.value === "" ? null : Number(els.maxHoursPerDay.value);
+
+    return { profitPerDeal, minutesPerDeal, targetMonthly, workDaysPerMonth, maxHoursPerDay };
+  }
+
+  function saveInputs(){
+    const data = {
+      profitPerDeal: els.profitPerDeal.value,
+      minutesPerDeal: els.minutesPerDeal.value,
+      targetMonthly: els.targetMonthly.value,
+      workDaysPerMonth: els.workDaysPerMonth.value,
+      maxHoursPerDay: els.maxHoursPerDay.value,
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  }
+
+  function loadInputs(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(!raw) return false;
+      const data = JSON.parse(raw);
+      els.profitPerDeal.value = data.profitPerDeal ?? "";
+      els.minutesPerDeal.value = data.minutesPerDeal ?? "";
+      els.targetMonthly.value = data.targetMonthly ?? "";
+      els.workDaysPerMonth.value = data.workDaysPerMonth ?? "";
+      els.maxHoursPerDay.value = data.maxHoursPerDay ?? "";
+      return true;
+    }catch(e){
+      return false;
+    }
+  }
+
+  function reset(){
+    localStorage.removeItem(STORAGE_KEY);
+    els.profitPerDeal.value = "";
+    els.minutesPerDeal.value = "";
+    els.targetMonthly.value = "";
+    els.workDaysPerMonth.value = "";
+    els.maxHoursPerDay.value = "";
+    renderEmpty();
+  }
+
+  function renderEmpty(){
+    els.statusBadge.style.display = "none";
+    els.hourly.textContent = "-";
+    els.needDealsMonth.textContent = "-";
+    els.needDealsDay.textContent = "-";
+    els.needTimeDay.textContent = "-";
+    els.advice.textContent = "入力して「計算する」を押すと、ここに改善ポイントも出ます。";
+  }
+
+  function calc(){
+    const { profitPerDeal, minutesPerDeal, targetMonthly, workDaysPerMonth, maxHoursPerDay } = readInputs();
+    saveInputs();
+
+    // バリデーション
+    if(!(profitPerDeal > 0) || !(minutesPerDeal > 0) || !(targetMonthly >= 0) || !(workDaysPerMonth > 0)){
+      els.advice.textContent = "「利益/件」「作業時間/件」「目標（月）」「稼働日数（月）」を正しく入力してね（0より大きい値）。";
+      els.statusBadge.style.display = "none";
+      els.hourly.textContent = "-";
+      els.needDealsMonth.textContent = "-";
+      els.needDealsDay.textContent = "-";
+      els.needTimeDay.textContent = "-";
+      return;
+    }
+
+    const hourly = profitPerDeal / (minutesPerDeal / 60);
+    const needDealsMonth = Math.ceil(targetMonthly / profitPerDeal);
+    const needDealsDay = Math.ceil(needDealsMonth / workDaysPerMonth);
+
+    const needMinutesMonth = needDealsMonth * minutesPerDeal;
+    const needMinutesDay = needMinutesMonth / workDaysPerMonth;
+
+    els.hourly.textContent = fmtYen(hourly) + "/時";
+    els.needDealsMonth.textContent = fmtNum(needDealsMonth) + "件";
+    els.needDealsDay.textContent = fmtNum(needDealsDay) + "件";
+    els.needTimeDay.textContent = fmtMin(needMinutesDay);
+
+    // 達成判定
+    let badgeText = "";
+    let badgeClass = "badge";
+    let adviceLines = [];
+
+    if(maxHoursPerDay !== null && isFinite(maxHoursPerDay) && maxHoursPerDay >= 0){
+      const maxMinutes = maxHoursPerDay * 60;
+      const ok = needMinutesDay <= maxMinutes;
+
+      els.statusBadge.style.display = "inline-flex";
+      if(ok){
+        badgeText = "達成可能（上限内）";
+        els.statusBadge.className = "badge ok";
+      }else{
+        badgeText = "厳しい（上限オーバー）";
+        els.statusBadge.className = "badge ng";
+      }
+      els.statusBadge.textContent = badgeText;
+
+      if(!ok){
+        // 上限内で達成するための必要条件
+        const maxDealsDay = Math.floor(maxMinutes / minutesPerDeal);
+        const possibleMonthlyDeals = maxDealsDay * workDaysPerMonth;
+        const possibleMonthlyProfit = possibleMonthlyDeals * profitPerDeal;
+
+        // 必要利益/件（時間は固定）
+        const maxDealsMonth_byTime = Math.floor((maxMinutes * workDaysPerMonth) / minutesPerDeal);
+        const needProfitPerDeal = targetMonthly / Math.max(1, maxDealsMonth_byTime);
+
+        // 必要時間/件（利益は固定）
+        const needMinutesPerDeal = (maxMinutes * workDaysPerMonth) / Math.max(1, needDealsMonth);
+
+        adviceLines.push(`上限 ${maxHoursPerDay}時間/日 だと、今の条件での最大は 約${fmtYen(possibleMonthlyProfit)}/月（${fmtNum(possibleMonthlyDeals)}件/月）。`);
+        adviceLines.push(`目標を上限内で達成するなら、`);
+        adviceLines.push(`・利益/件を 約${fmtYen(needProfitPerDeal)} 以上に上げる（時間はそのまま）`);
+        adviceLines.push(`　または`);
+        adviceLines.push(`・作業時間/件を 約${fmtMin(needMinutesPerDeal)} 以下に短縮する（利益はそのまま）`);
+      }else{
+        adviceLines.push(`上限 ${maxHoursPerDay}時間/日 の範囲で目標達成できます。`);
+        adviceLines.push(`次は「利益/件 +500円」or「作業時間 -5分」を入れて、時給がどれだけ伸びるか試すと改善ポイントが見えます。`);
+      }
+    }else{
+      els.statusBadge.style.display = "none";
+      adviceLines.push(`まずは「利益/件」か「作業時間/件」を少し変えてみて、時給がどのくらい動くか確認してみて。`);
+      adviceLines.push(`例：利益/件を+500円、作業時間を-5分できるだけで、時給は結構跳ねます。`);
+    }
+
+    adviceLines.push(`目安：時給が低い時は「利益を上げる」より先に「作業時間を削る（テンプレ化/仕組み化）」が効きやすいです。`);
+    els.advice.textContent = adviceLines.join("\n");
+  }
+
+  // 初期値（初回だけ入れる）
+  function setDefaultsIfEmpty(){
+    if(els.profitPerDeal.value === "") els.profitPerDeal.value = "3000";
+    if(els.minutesPerDeal.value === "") els.minutesPerDeal.value = "25";
+    if(els.targetMonthly.value === "") els.targetMonthly.value = "50000";
+    if(els.workDaysPerMonth.value === "") els.workDaysPerMonth.value = "22";
+  }
+
+  // 起動
+  const loaded = loadInputs();
+  if(!loaded){
+    setDefaultsIfEmpty();
+    saveInputs();
+  }
+  calc();
+
+  // イベント
+  els.calcBtn.addEventListener("click", calc);
+  els.resetBtn.addEventListener("click", reset);
+
+  // 入力変更で自動計算（重くならないよう軽く）
+  let timer = null;
+  ["profitPerDeal","minutesPerDeal","targetMonthly","workDaysPerMonth","maxHoursPerDay"].forEach(id=>{
+    $(id).addEventListener("input", ()=>{
+      clearTimeout(timer);
+      timer = setTimeout(calc, 150);
+    });
+    $(id).addEventListener("change", calc);
+  });
+</script>
+</body>
+</html>
