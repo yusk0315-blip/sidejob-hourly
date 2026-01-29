@@ -64,6 +64,9 @@
     .footer-note{font-size:12px;color:var(--muted);margin-top:12px;line-height:1.6}
     .mono{font-variant-numeric:tabular-nums}
   </style>
+  <link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#111827">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
 </head>
 <body>
   <div class="wrap">
@@ -361,5 +364,17 @@
     $(id).addEventListener("change", calc);
   });
 </script>
+  </script>
+
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("./sw.js", { scope: "./" });
+    });
+  }
+</script>
+</body>
+</html>
+
 </body>
 </html>
